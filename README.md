@@ -1,0 +1,1 @@
+# Serverová hra "Šachy" s využitím Node.js a jiných frameworků

@@ -1,71 +1,67 @@
-body {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100vh;
-}
-.chessBoard {
-  width: 80vw;
-  height: 80vw;
-  margin: 0 auto;
-  display: flex;
-  flex-wrap: wrap;
-}
-.square {
-  width: 12.5%;
-  height: 12.5%;
-  float: left;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  position: relative;
-}
-.white {
-  background-color: #f0d9b5;
-}
-.black {
-  background-color: #b58863;
-}
-.coordinate {
-  height: auto;
-  display: flex;
-  bottom: 4%;
-  left: 4%;
-  position: absolute;
-  font-size: 12px;
-  font-weight: bold;
-  font-family: Verdana, Geneva, Tahoma, sans-serif;
-}
-.rank {
-  top: 4%;
-  right: 4%;
-  left: auto;
-}
-.whiteText {
-  color: #f0d9b5;
-}
-.blackText {
-  color: #b58863;
-}
-.piece {
-  width: 100%;
-  z-index: 1;
-  cursor: pointer;
-}
-.piece img {
-  max-width: 100%;
-  width: 100%;
-  height: auto;
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Poppins", sans-serif;
 }
 
-@media (min-width: 600px) {
-  .chessBoard {
-    width: 600px;
-    height: 600px;
-  }
+body {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f2f2f2;
 }
-@media (max-width: 600px) {
-  .coordinate {
-    font-size: 8px;
-  }
+
+.kontejner {
+  background-color: #fff;
+  padding: 2rem;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+}
+
+h1 {
+  text-align: center;
+  font-weight: 500;
+}
+
+.deska {
+  width: 400px;
+  margin: 20px auto;
+}
+
+.tlacitka {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+button {
+  color: #fff;
+  background-color: #000;
+  border: none;
+  width: 120px;
+  height: 40px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+button:hover {
+  background-color: #434343;
+}
+
+.historie-tahu {
+  margin-top: 20px;
+  border: 1px solid #ccc;
+  padding: 10px;
+  border-radius: 5px;
+  height: 100px;
+  width: 400px;
+  overflow-y: scroll;
+  background-color: #f2f2f2;
 }

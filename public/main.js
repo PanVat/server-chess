@@ -1,84 +1,121 @@
-/* Čekání, než se naplní DOM ještě před zpracováním kódu */
 document.addEventListener('DOMContentLoaded', () => {
-    let deska = null; /* Inicializace hrací desky */
-    const hra = new Chess(); /* Vytvoření instance nové šachové hry */
-    const historieTahu = document.getElementById('historie-tahu'); /* Získání kontejneru s historií tahů */
-    let pocetTahu = 1; /* Inicializace počtu tahů */
-    let barvaUzivatele = 'w'; /* Inicializace uživatelské barvy na bílou */
+    const socket = io();
+    let board = null;
+    const game = new Chess();
+    let userColor = 'w';
 
-    /* Funkce, která udělá náhodný tah za počítač */
-    const udelejNahodnyTah = () => {
-        const mozneTahy = hra.moves();
+    /* Objekt, který přeloží značku figurky na celé jméno */
+    const pieceNames = {
+        p: 'Pěšec',
+        r: 'Věž',
+        n: 'Jezdec',
+        b: 'Střelec',
+        k: 'Král',
+        q: 'Dáma',
+    };
 
-        if (hra.game_over()) {
-            alert("Šach Mat!");
-        } else {
-            const nahodnyIdx = Math.floor(Math.random() * mozneTahy.length);
-            const tah = mozneTahy[nahodnyIdx];
-            hra.move(tah);
-            deska.position(hra.fen());
-            nahrajTah(tah, pocetTahu); /* Nahrát a zobrazit tah s počtem tahů */
-            pocetTahu++; /* Zvýšit počet tahů */
-        }
+    /* Nastaví barvu připojenému uživateli */
+    socket.on('setColor', (color) => {
+        userColor = color;
+        updatePlayerTurn();
+    });
+
+    /* Přijímá aktuální stav hry ze serveru */
+    socket.on('gameState', (fen) => {
+        game.load(fen);
+        board.position(fen);
+        updatePlayerTurn();
+    });
+
+    /* Přijímá aktuální tah ze serveru */
+    socket.on('move', (move) => {
+        game.move(move);
+        board.position(game.fen());
+        updatePlayerTurn();
+        displayMovePosition(move);
+        checkCheckmate();
+    });
+
+    const onDragStart = (source, piece) => {
+        if (game.game_over() || piece.search(userColor) === -1) return false;
     };
-    /* Funkce pro nahrání a zobrazení tahu v historii tahů */
-    const nahrajTah = (tah, pocet) => {
-        const formatovanyTah = pocet % 2 === 1 ? `${Math.ceil(pocet / 2)}. ${tah}` : `${tah} -`;
-        historieTahu.textContent += formatovanyTah + ' ';
-        historieTahu.scrollTop = historieTahu.scrollHeight; /* Automaticky přetočit na poslední tah */
-    };
-    /* Funkce pro řízení uchopení figurky */
-    const naZacatkuTahu = (zdroj, dilek) => {
-        /* Uživatel může pohybovat pouze figurkami na základě své barvy */
-        return !hra.game_over() && dilek.search(barvaUzivatele) === 0;
-    };
-    /* Funkce pro řízení upuštění figurky */
-    const priPolozeni = (zdroj, cil) => {
-        const tah = hra.move({
-            from: zdroj,
-            to: cil,
+
+    const onDrop = (source, target) => {
+        const move = game.move({
+            from: source,
+            to: target,
             promotion: 'q',
         });
-        if (tah === null) return 'snapback';
 
-        window.setTimeout(udelejNahodnyTah, 250);
-        nahrajTah(tah.san, pocetTahu); /* Nahraj a zobraz tah i s počtem tahů */
-        pocetTahu++;
+        if (move === null) return 'snapback';
+        socket.emit('move', move);
     };
-    /* Funkce pro zpracování konce animace uchopení figurky */
-    const naKonciUchopeni = () => {
-        deska.position(hra.fen());
+
+    const onSnapEnd = () => {
+        board.position(game.fen());
     };
-    /* Nastavení pro konfiguraci hrací plochy */
-    const konfiguraceDesky = {
-        showNation: true,
+
+    const boardConfig = {
+        showNotation: true,
         draggable: true,
         position: 'start',
-        naZacatkuTahu,
-        priPolozeni,
-        naKonciUchopeni,
+        onDragStart,
+        onDrop,
+        onSnapEnd,
         moveSpeed: 'fast',
         snapBackSpeed: 500,
         snapSpeed: 100,
     };
-    /* Inicializace hrací plochy */
-    deska = Chessboard('deska', konfiguraceDesky);
 
-    /* Event listener pro tlačítko "Nová hra" */
-    document.querySelector(('.nova-hra')).addEventListener
-        ('click', () => {
-            hra.reset();
-            deska.start();
-            historieTahu.textContent = '';
-            pocetTahu = 1;
-            barvaUzivatele = 'w';
-        });
-    /* Event listener pro tlačítko "Překlopit desku" */
-    document.querySelector('.preklopit-desku').addEventListener
-        ('click', () => {
-            deska.flip();
-            udelejNahodnyTah();
-            /* Přepnutí barvy uživatele po převrácení desky */
-            barvaUzivatele = barvaUzivatele === 'w' ? 'b' : 'w';
-        });
+    board = Chessboard('board', boardConfig);
+
+    /* Aktualizuje informaci o tahu hráče */
+    const updatePlayerTurn = () => {
+        const playerTurnElement = document.getElementById('player-turn');
+        if (game.turn() === 'w') {
+            playerTurnElement.innerHTML = 'Na tahu je <strong>bílý</strong> hráč';
+        } else {
+            playerTurnElement.innerHTML = 'Na tahu je <strong>černý</strong> hráč';
+        }
+    };
+
+    /* Vypíše informaci o tahu na obrazovku */
+    const displayMovePosition = (move) => {
+        const playerMoveElement = document.getElementById('player-move');
+        const piece = game.get(move.to);
+        if (piece) {
+            const pieceName = pieceNames[piece.type];
+            playerMoveElement.innerHTML = `Poslední tah hráče: <strong>${pieceName}</strong> na <strong>${move.to}</strong>`;
+        } else {
+            playerMoveElement.innerHTML = `Poslední tah hráče: <strong>Neznámá figura</strong> na ${move.to}`;
+        }
+    };
+
+    /* Otevře modální okno */
+    const openModal = () => {
+        const modal = document.getElementById('modal');
+        modal.style.display = 'block';
+    };
+
+    /* Nastaví vítěze */
+    const setWinner = (winner) => {
+        const winnerElement = document.getElementById('winner');
+        winnerElement.textContent = winner;
+    };
+
+    /* Funkce zobrazí hlášku o výherci */
+    const checkCheckmate = () => {
+        if (game.in_checkmate()) {
+            let winner;
+            if (game.turn() === 'w') {
+                winner = 'Černý';
+            } else {
+                winner = 'Bílý';
+            }
+            setWinner(winner);
+            openModal();
+        }
+    };
 });
+
+

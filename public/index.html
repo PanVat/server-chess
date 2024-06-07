@@ -1,30 +1,35 @@
 <!DOCTYPE html>
 <html lang="cs">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="style.css" />
-    <link rel="stylesheet" href="css/chessboard-1.0.0.min.css" />
-    <!-- Import css souboru pro šachovnici -->
-    <title>Webové šachy</title>
-  </head>
-  <body>
-    <div class="kontejner">
-      <h1>Šachovnice</h1>
-      <div class="deska" id="deska"></div>
-      <div class="tlacitka">
-        <button class="nova-hra">Nová hra</button>
-        <button class="preklopit-desku">Překlopit desku</button>
-      </div>
-      <div id="historie-tahu" class="historie-tahu"></div>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Import stylů pro šachovou desku -->
+    <link rel="stylesheet" href="css/chessboard-1.0.0.min.css">
+    <link rel="stylesheet" href="style.css">
+    <title>Šachy</title>   
+</head>
+<body>
+    <div class="container">
+        <h1>Šachovnice</h1>
+        <div class="board" id="board"></div>
+        <p id="player-turn"></p> <!-- Zobrazí, který hráč je na řadě -->
+        <p id="player-move" class="move-history"></p> <!-- Zobrazí poslední tah hráče -->
     </div>
-
+    <div id="modal" class="modal"> <!-- Modální okno se ukáže, když je šach mat -->
+      <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>Šach mat!</h2>
+        <p><span id="winner"></span> zvítězil!</p>
+      </div>
+    </div>    
+    <!-- Import JQuery knihovny -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-    <!-- Import knihovny JQuery -->
-    <script src="js/chessboard-1.0.0.min.js"></script>
     <!-- Import šachové knihovny -->
+    <script src="js/chessboard-1.0.0.min.js"></script>
+    <!-- Import AJAX šachové knihovny -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
-    <!-- Import další šachové knihovny -->
+    <script src="/socket.io/socket.io.js"></script>
+    <!-- Import hlavního scriptu -->
     <script src="main.js"></script>
-  </body>
+</body>
 </html>
